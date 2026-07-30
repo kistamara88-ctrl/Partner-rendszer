@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Controllers\WebAuthn;
+
+use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Laragear\WebAuthn\Http\Requests\AttestationRequest;
+use Laragear\WebAuthn\Http\Requests\AttestedRequest;
+
+use function response;
+
+class WebAuthnRegisterController
+{
+   public function options(AttestationRequest $request): Responsable
+{
+    dd(auth()->check(), auth()->user());
+
+    return $request
+        ->fastRegistration()
+        ->toCreate();
+}
+
+    public function register(AttestedRequest $request): Response
+    {
+        $request->save();
+
+        return response()->noContent();
+    }
+}

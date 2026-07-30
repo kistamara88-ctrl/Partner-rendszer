@@ -1,0 +1,44 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            //
+            $table->renameColumn('postal_code', 'shipping_postal_code');
+            $table->renameColumn('city', 'city');
+            $table->renameColumn('address', 'address');
+
+            $table->string('billing_postal_code')->nullable();
+            $table->string('billing_city')->nullable();
+            $table->string('billing_address')->nullable();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            //
+             $table->renameColumn('shipping_postal_code', 'postal_code');
+            $table->renameColumn('city', 'city');
+            $table->renameColumn('address', 'address');
+
+        $table->dropColumn([
+            'billing_postal_code',
+            'billing_city',
+            'billing_address',
+            ]);
+        });
+    }
+};
