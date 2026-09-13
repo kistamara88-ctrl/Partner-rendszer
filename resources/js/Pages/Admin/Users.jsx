@@ -26,47 +26,57 @@ const columns = [
 
     columnHelper.accessor("is_approved", {
         header: "Jóváhagyva",
-        cell: info => (info.getValue() ? "✅" : "❌"),
+        cell: info => (info.getValue() ? "Igen" : "Nem"),
     }),
 
     columnHelper.accessor("is_active", {
         header: "Aktív",
-        cell: info => (info.getValue() ? "✅" : "❌"),
+        cell: info => (info.getValue() ? "Igen" : "Nem"),
     }),
 
     columnHelper.accessor("is_admin", {
         header: "Admin",
-        cell: info => (info.getValue() ? "✅" : "❌"),
+        cell: info => (info.getValue() ? "Igen" : "Nem"),
     }),
 
     columnHelper.display({
-        id: "actions",
-        header: "Műveletek",
+    id: "actions",
+    header: "Műveletek",
 
-        cell: ({ row }) => (
-            <>
-                {!row.original.is_approved && (
-                    <button
-                        onClick={() =>
-                            router.patch(`/admin/users/${row.original.id}/approve`)
-                        }
-                    >
-                        Jóváhagyás
-                    </button>
-                )}
+    cell: ({ row }) => (
+        <>
+            <button
+                onClick={() =>
+                    router.get(`/admin/users/${row.original.id}/details`)
+                }
+            >
+                Adatok megtekintése
+            </button>
 
-                {" "}
+            {" "}
 
+            {!row.original.is_approved && (
                 <button
                     onClick={() =>
-                        router.patch(`/admin/users/${row.original.id}/toggle-active`)
+                        router.patch(`/admin/users/${row.original.id}/approve`)
                     }
                 >
-                    {row.original.is_active ? "Inaktiválás" : "Aktiválás"}
+                    Jóváhagyás
                 </button>
-            </>
-        ),
-    }),
+            )}
+
+            {" "}
+
+            <button
+                onClick={() =>
+                    router.patch(`/admin/users/${row.original.id}/toggle-active`)
+                }
+            >
+                {row.original.is_active ? "Inaktiválás" : "Aktiválás"}
+            </button>
+        </>
+    ),
+}),
 ];
 
 

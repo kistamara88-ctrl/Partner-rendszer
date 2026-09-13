@@ -35,6 +35,16 @@ class AdminController extends Controller
         $user->update(['is_active' => !$user->is_active,]);
         return back();
     }
+    public function details(User $user): Response
+    {
+        if (!Auth::user()->is_admin) {
+            abort(403);
+        }
+
+        return Inertia::render('Admin/UserDetails', [
+            'user' => $user,
+        ]);
+    }
 
     //
 }

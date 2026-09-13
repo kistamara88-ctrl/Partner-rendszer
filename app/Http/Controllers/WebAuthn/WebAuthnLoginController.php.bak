@@ -37,3 +37,4 @@ class WebAuthnLoginController
         return response()->noContent($user ? 204 : 422);
     }
 }
+

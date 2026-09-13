@@ -1,0 +1,66 @@
+import Webpass from "@laragear/webpass";
+
+export default function BiometricRegister() {
+    const register = async () => {
+        try {
+            const csrf = document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute("content");
+
+            console.log("CSRF:", csrf);
+
+            if (!csrf) {
+                alert("CSRF token nem található.");
+                return;
+            }
+
+            const webpass = Webpass.create({
+                routes: {
+                    attestOptions: "/webauthn/register/options",
+                    attest: "/webauthn/register",
+                    assertOptions: "/webauthn/login/options",
+                    assert: "/webauthn/login",
+                },
+                headers: {
+                    "X-CSRF-TOKEN": csrf,
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                credentials: "same-origin",
+            });
+
+            console.log("Webpass létrehozva");
+
+            const result = await webpass.attest();
+
+            console.log(
+                "Regisztráció eredménye:",
+                JSON.stringify(result, null, 2)
+            );
+
+            if (result?.success === false) {
+                console.error("WebAuthn hiba:", result.error);
+                alert("A biometrikus azonosító hozzáadása nem sikerült.");
+                return;
+            }
+
+            alert("A biometrikus azonosító sikeresen hozzáadva!");
+
+        } catch (error) {
+            console.error(
+                "Biometrikus regisztrációs hiba:",
+                error
+            );
+
+            alert("A biometrikus azonosító hozzáadása nem sikerült.");
+        }
+    };
+
+    return (
+        <button
+            type="button"
+            onClick={register}
+        >
+            Biometrikus azonosító hozzáadása
+        </button>
+    );
+}

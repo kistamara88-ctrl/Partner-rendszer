@@ -11,15 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-            $table->renameColumn('postal_code', 'shipping_postal_code');
-            $table->renameColumn('city', 'city');
-            $table->renameColumn('address', 'address');
+        if (Schema::hasColumn('users', 'postal_code') && ! Schema::hasColumn('users', 'shipping_postal_code')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->renameColumn('postal_code', 'shipping_postal_code');
+            });
+        }
 
-            $table->string('billing_postal_code')->nullable();
-            $table->string('billing_city')->nullable();
-            $table->string('billing_address')->nullable();
+        Schema::table('users', function (Blueprint $table) {
+            if (! Schema::hasColumn('users', 'billing_postal_code')) {
+                $table->string('billing_postal_code')->nullable();
+            }
+
+            if (! Schema::hasColumn('users', 'billing_city')) {
+                $table->string('billing_city')->nullable();
+            }
+
+            if (! Schema::hasColumn('users', 'billing_address')) {
+                $table->string('billing_address')->nullable();
+            }
         });
     }
 
@@ -28,17 +37,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-             $table->renameColumn('shipping_postal_code', 'postal_code');
-            $table->renameColumn('city', 'city');
-            $table->renameColumn('address', 'address');
-
-        $table->dropColumn([
-            'billing_postal_code',
-            'billing_city',
-            'billing_address',
-            ]);
-        });
+        if (Schema::hasColumn('users', 'shipping_postal_code') && ! Schema::hasColumn('users', 'postal_code')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->renameColumn('shipping_postal_code', 'postal_code');
+            });
+        }
     }
 };

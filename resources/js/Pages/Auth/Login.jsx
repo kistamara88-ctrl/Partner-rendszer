@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Checkbox from '@/Components/Checkbox';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
+import Webpass from '@laragear/webpass';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -13,6 +15,8 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: false,
     });
+    const [biometricError, setBiometricError] = useState('');
+    const [biometricProcessing, setBiometricProcessing] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -22,8 +26,72 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content');
 
-        post(route('login'));
+        post(route('login'), {
+            headers: csrfToken ? {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            } : {},
+        });
+    };
+
+    const biometricLogin = async () => {
+        setBiometricError('');
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content');
+
+        if (!data.email) {
+            setBiometricError('Add meg az email cimedet a biometrikus belepeshez.');
+            return;
+        }
+
+        if (Webpass.isUnsupported()) {
+            setBiometricError('Ez a bongeszo vagy eszkoz nem tamogatja a biometrikus belepest.');
+            return;
+        }
+
+        if (!csrfToken) {
+            setBiometricError('Hianyzik a CSRF token az oldalrol.');
+            return;
+        }
+
+        setBiometricProcessing(true);
+
+        const result = await Webpass.create({
+            credentials: 'same-origin',
+        }).assert({
+            path: route('webauthn.login.options'),
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: {
+                email: data.email,
+                remember: data.remember,
+            },
+        }, {
+            path: route('webauthn.login'),
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: {
+                remember: data.remember,
+            },
+        });
+
+        setBiometricProcessing(false);
+
+        if (result.success) {
+            window.location.href = route('dashboard');
+            return;
+        }
+
+        setBiometricError('A biometrikus belepes nem sikerult.');
     };
 
     return (
@@ -66,6 +134,12 @@ export default function Login({ status, canResetPassword }) {
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
+                {biometricError && (
+                    <div className="mt-4 text-sm text-red-600">
+                        {biometricError}
+                    </div>
+                )}
+
                 <div className="block mt-4">
                     <label className="flex items-center">
                         <Checkbox
@@ -90,6 +164,16 @@ export default function Login({ status, canResetPassword }) {
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Log in
                     </PrimaryButton>
+                </div>
+
+                <div className="mt-4">
+                    <SecondaryButton
+                        className="w-full justify-center"
+                        disabled={processing || biometricProcessing}
+                        onClick={biometricLogin}
+                    >
+                        Biometrikus belepes
+                    </SecondaryButton>
                 </div>
             </form>
         </GuestLayout>
